@@ -7,6 +7,7 @@
 
 import UIKit
 import SnapKit
+import Kingfisher
 
 class DetailGameViewController: UIViewController {
     
@@ -53,6 +54,17 @@ class DetailGameViewController: UIViewController {
         label.textColor = .darkGray
         label.numberOfLines = 0
         return label
+    }()
+    
+    private let websiteButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.setTitle("Visit Website", for: .normal)
+        button.backgroundColor = .systemGreen
+        button.setTitleColor(.white, for: .normal)
+        button.titleLabel?.font = .boldSystemFont(ofSize: 16)
+        button.layer.cornerRadius = 10
+        button.clipsToBounds = true
+        return button
     }()
     
     // MARK: - Init
@@ -120,6 +132,9 @@ class DetailGameViewController: UIViewController {
         contentView.addSubview(releasedLabel)
         contentView.addSubview(ratingLabel)
         contentView.addSubview(descriptionLabel)
+        contentView.addSubview(websiteButton)
+        
+        websiteButton.addTarget(self, action: #selector(websiteButtonTapped), for: .touchUpInside)
     }
     
     // MARK: - Setup Constraints (SNAPKIT)
@@ -162,10 +177,18 @@ class DetailGameViewController: UIViewController {
             make.leading.greaterThanOrEqualTo(releasedLabel.snp.trailing).offset(8)
         }
         
-        // 6. Description Label (Paling Bawah)
+        // 6. Description Label
         descriptionLabel.snp.makeConstraints { make in
             make.top.equalTo(releasedLabel.snp.bottom).offset(24)
             make.leading.trailing.equalTo(titleLabel)
+        }
+        
+        // 7. Website Button (di bawah deskripsi & di tengah secara horizontal)
+        websiteButton.snp.makeConstraints { make in
+            make.top.equalTo(descriptionLabel.snp.bottom).offset(24)
+            make.centerX.equalToSuperview()
+            make.width.equalTo(200)
+            make.height.equalTo(48)
             // KUNCI SCROLL VIEW: Bottom harus menempel ke ContentView
             make.bottom.equalToSuperview().offset(-32)
         }
@@ -196,9 +219,48 @@ class DetailGameViewController: UIViewController {
         ratingLabel.text = "Rating: \(detail.rating)"
         descriptionLabel.text = detail.description
         
-        // Load gambar (menggunakan extension yang kita buat sebelumnya)
+        // Load gambar menggunakan Kingfisher
         let placeholder = UIImage(systemName: "photo")
-        gameImageView.image = placeholder
-        // gameImageView.loadImage(from: detail.backgroundImage, placeholder: placeholder)
+        if let url = URL(string: detail.backgroundImage) {
+            gameImageView.kf.setImage(with: url, placeholder: placeholder, options: [
+                .transition(.fade(0.3)),
+                .cacheOriginalImage
+            ])
+        } else {
+            gameImageView.image = placeholder
+        }
+    }
+    
+    // MARK: - Actions
+    @objc private func websiteButtonTapped() {
+        guard let websiteString = viewModel.gameDetail?.website,
+              !websiteString.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            let alert = UIAlertController(
+                title: "Website Tidak Tersedia",
+                message: "Game ini tidak memiliki tautan website resmi.",
+                preferredStyle: .alert
+            )
+            alert.addAction(UIAlertAction(title: "OK", style: .default))
+            present(alert, animated: true)
+            return
+        }
+        
+        var formattedUrlString = websiteString.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !formattedUrlString.hasPrefix("http://") && !formattedUrlString.hasPrefix("https://") {
+            formattedUrlString = "https://" + formattedUrlString
+        }
+        
+        guard let url = URL(string: formattedUrlString) else {
+            let alert = UIAlertController(
+                title: "Tautan Tidak Valid",
+                message: "Format tautan website tidak valid.",
+                preferredStyle: .alert
+            )
+            alert.addAction(UIAlertAction(title: "OK", style: .default))
+            present(alert, animated: true)
+            return
+        }
+        
+        UIApplication.shared.open(url, options: [:], completionHandler: nil)
     }
 }

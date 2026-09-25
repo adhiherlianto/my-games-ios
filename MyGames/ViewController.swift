@@ -7,40 +7,13 @@
 
 import UIKit
 
-class ViewController: UITabBarController {
+/// View controller awal template Xcode.
+/// Catatan: Pengaturan Tab Bar dan seluruh alur navigasi aplikasi kini telah dipindahkan
+/// ke `AppCoordinator` dan `MainTabCoordinator` sesuai arsitektur Coordinator Pattern.
+class ViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        // create instance of view controller
-        let homeVC = HomeViewController()
-        homeVC.title = "Home"
-        
-        let profileVC = ProfileViewController()
-        profileVC.title = "Profile"
-        
-        let bookmarkVC = BookMarksViewController()
-        bookmarkVC.title = "Bookmark"
-        
-        let testVC = TestViewController()
-        testVC.title = "Test"
-        
-        // assign viewcontroller to tabbar
-        self.setViewControllers([homeVC,  bookmarkVC, profileVC, testVC], animated: false)
-        
-        guard let items = self.tabBar.items else { return }
-        
-        let images = ["house", "star", "person", "bell"]
-        
-        for x in 0..<images.count {
-            items[x].image = UIImage(systemName: images[x])
-        }
-        
-        self.tabBar.tintColor = .systemGreen
-        self.tabBar.unselectedItemTintColor = .systemGray
-        
-        
+        view.backgroundColor = .systemBackground
     }
-
-
 }
-

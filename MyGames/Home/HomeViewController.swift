@@ -14,7 +14,7 @@ class HomeViewController: UIViewController {
     private let viewModel = GameViewModel()
     private let activityIndicator = UIActivityIndicatorView(style: .large)
     
-    var router: AppRouter? // <-- Added router property
+    weak var coordinator: HomeNavigationDelegate?
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -90,6 +90,6 @@ extension HomeViewController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         let selectedGame = viewModel.game(at: indexPath.row)
-        router?.navigate(to: Route.gameDetail(gameID: selectedGame.id))
+        coordinator?.showGameDetail(gameId: selectedGame.id)
     }
 }

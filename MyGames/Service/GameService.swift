@@ -17,7 +17,7 @@ class GameService {
         
         urlComponents?.queryItems = [
             URLQueryItem(name: "key", value: "1ab9d933688b43f6bae9b55c65ddb85c"),
-            URLQueryItem(name: "page_size", value: "100")
+            URLQueryItem(name: "page_size", value: "10")
         ]
         
         let request = URLRequest(url: (urlComponents?.url)!)
@@ -42,6 +42,10 @@ class GameService {
     
     func fetchDetailGame(id: Int, completion: @escaping(Result<GameDetail, Error>) -> Void) {
         var urlComponents = URLComponents(string: "https://api.rawg.io/api/games/\(id)")
+        
+        urlComponents?.queryItems = [
+            URLQueryItem(name: "key", value: "1ab9d933688b43f6bae9b55c65ddb85c"),
+        ]
         
         let request = URLRequest(url: (urlComponents?.url)!)
         

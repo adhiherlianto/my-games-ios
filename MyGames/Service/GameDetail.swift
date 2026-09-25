@@ -16,7 +16,8 @@ struct GameDetail: Codable {
     let released: String
     
     enum CodingKeys: String, CodingKey {
-        case id, name, description, rating, website, released
+        case id, name, rating, website, released
+        case description = "description_raw"
         case backgroundImage = "background_image"
     }
 }
