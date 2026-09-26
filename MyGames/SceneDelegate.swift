@@ -18,6 +18,9 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         let window = UIWindow(windowScene: windowScene)
         self.window = window
         
+        // Terapkan preferensi tema (Dark / Light Mode) yang tersimpan
+        ThemeManager.shared.applyTheme()
+        
         let coordinator = AppCoordinator(window: window)
         self.appCoordinator = coordinator
         coordinator.start()

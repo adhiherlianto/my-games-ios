@@ -11,6 +11,7 @@ import UIKit
 /// HomeViewController tidak perlu tahu siapa yang menangani navigasinya.
 protocol HomeNavigationDelegate: AnyObject {
     func showGameDetail(gameId: Int)
+    func goToSearch()
 }
 
 /// Coordinator yang bertanggung jawab atas seluruh navigasi di dalam tab Home.
@@ -39,5 +40,13 @@ final class HomeCoordinator: Coordinator, HomeNavigationDelegate {
         let detailVC = DetailGameViewController(viewModel: viewModel)
         detailVC.hidesBottomBarWhenPushed = true
         navigationController.pushViewController(detailVC, animated: true)
+    }
+    
+    func goToSearch() {
+        let viewModel = SearchViewModel()
+        let searchVC = SearchViewController(viewModel: viewModel)
+        searchVC.coordinator = self
+        searchVC.hidesBottomBarWhenPushed = true
+        navigationController.pushViewController(searchVC, animated: true)
     }
 }

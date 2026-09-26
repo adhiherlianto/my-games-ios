@@ -27,6 +27,7 @@ class GameTableViewCell: UITableViewCell {
     private let titleLabel: UILabel = {
         let label = UILabel()
         label.font = .boldSystemFont(ofSize: 17)
+        label.textColor = .label // Otomatis Hitam di Light Mode, Putih di Dark Mode
         label.numberOfLines = 0
         return label
     }()
@@ -34,14 +35,15 @@ class GameTableViewCell: UITableViewCell {
     private let dateLabel: UILabel = {
         let label = UILabel()
         label.font = .systemFont(ofSize: 15)
-        label.textColor = .secondaryLabel
+        label.textColor = .secondaryLabel // Abu-abu adaptif
         label.numberOfLines = 0
         return label
     }()
     
     private let ratingLabel: UILabel = {
         let label = UILabel()
-        label.font = .systemFont(ofSize: 17)
+        label.font = .systemFont(ofSize: 15, weight: .semibold)
+        label.textColor = .label // Otomatis kontras di Light & Dark Mode
         label.textAlignment = .right
         return label
     }()
@@ -68,6 +70,8 @@ class GameTableViewCell: UITableViewCell {
     
     // MARK: - Setup UI
     private func setupUI() {
+        backgroundColor = .clear
+        contentView.backgroundColor = .clear
         accessoryType = .disclosureIndicator
         
         // Masukkan title dan date ke dalam stack view
@@ -114,7 +118,7 @@ class GameTableViewCell: UITableViewCell {
     func configure(with game: Game) {
         titleLabel.text = game.name
         dateLabel.text = game.released
-        ratingLabel.text = "\(game.rating)"
+        ratingLabel.text = "★ \(game.rating)"
         
 //        gameImage.image = UIImage(systemName: "car.fill")
         let url = URL(string: game.backgroundImage)

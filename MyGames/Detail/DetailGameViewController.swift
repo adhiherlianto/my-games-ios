@@ -13,6 +13,10 @@ class DetailGameViewController: UIViewController {
     
     private let viewModel: DetailGameViewModel
     
+    // MARK: - Navigation Bar Items
+    private var favoriteButton: UIBarButtonItem?
+    private var shareButton: UIBarButtonItem?
+    
     // MARK: - UI Components
     private let scrollView = UIScrollView()
     private let contentView = UIView()
@@ -28,6 +32,7 @@ class DetailGameViewController: UIViewController {
     private let titleLabel: UILabel = {
         let label = UILabel()
         label.font = .boldSystemFont(ofSize: 24)
+        label.textColor = .label // Otomatis Hitam di Light Mode, Putih di Dark Mode
         label.numberOfLines = 0
         label.textAlignment = .center
         return label
@@ -36,7 +41,7 @@ class DetailGameViewController: UIViewController {
     private let releasedLabel: UILabel = {
         let label = UILabel()
         label.font = .systemFont(ofSize: 14)
-        label.textColor = .secondaryLabel
+        label.textColor = .secondaryLabel // Abu-abu adaptif yang nyaman dibaca
         return label
     }()
     
@@ -51,7 +56,7 @@ class DetailGameViewController: UIViewController {
     private let descriptionLabel: UILabel = {
         let label = UILabel()
         label.font = .systemFont(ofSize: 16)
-        label.textColor = .darkGray
+        label.textColor = .label // KUNCI: Gunakan .label (Bukan .darkGray) agar otomatis putih di Dark Mode
         label.numberOfLines = 0
         return label
     }()
@@ -91,6 +96,13 @@ class DetailGameViewController: UIViewController {
         viewModel.fetchDetail()
     }
     
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        // KUNCI SWIPE TO BACK: Aktifkan kembali interactivePopGestureRecognizer bawaan iOS
+        navigationController?.interactivePopGestureRecognizer?.isEnabled = true
+        navigationController?.interactivePopGestureRecognizer?.delegate = self
+    }
+    
     // MARK: - Setup Navigation Bar
     private func setupNavigationBar() {
         // Tombol Back
@@ -103,15 +115,31 @@ class DetailGameViewController: UIViewController {
         )
         navigationItem.leftBarButtonItem?.tintColor = .label
         
-        // Tombol Favorite (Heart)
-        let heartImage = UIImage(systemName: "heart.fill")
-        navigationItem.rightBarButtonItem = UIBarButtonItem(
-            image: heartImage,
+        // 1. Tombol Favorite (Heart)
+        let initialImageName = viewModel.isFavorite ? "heart.fill" : "heart"
+        let favButton = UIBarButtonItem(
+            image: UIImage(systemName: initialImageName),
             style: .plain,
             target: self,
             action: #selector(favoriteTapped)
         )
-        navigationItem.rightBarButtonItem?.tintColor = .systemRed
+        favButton.tintColor = .systemRed
+        self.favoriteButton = favButton
+        
+        // 2. Tombol Share (square.and.arrow.up)
+        let shButton = UIBarButtonItem(
+            image: UIImage(systemName: "square.and.arrow.up"),
+            style: .plain,
+            target: self,
+            action: #selector(shareTapped)
+        )
+        shButton.tintColor = .label
+        shButton.isEnabled = false // Dinonaktifkan sementara sampai data detail selesai dimuat
+        self.shareButton = shButton
+        
+        // Urutan di iOS: [favoriteButton, shareButton]
+        // Hasilnya di navigation bar: Tombol Love di paling kanan ujung, Tombol Share tepat di sebelah kirinya
+        navigationItem.rightBarButtonItems = [favButton, shButton]
     }
     
     @objc private func backTapped() {
@@ -119,11 +147,21 @@ class DetailGameViewController: UIViewController {
     }
     
     @objc private func favoriteTapped() {
-        print("Favorite tapped for game ID")
+        let isFavorite = viewModel.toggleFavorite()
+        updateFavoriteButton(isFavorite: isFavorite)
+    }
+    
+    private func updateFavoriteButton(isFavorite: Bool) {
+        let imageName = isFavorite ? "heart.fill" : "heart"
+        favoriteButton?.image = UIImage(systemName: imageName)
     }
     
     // MARK: - Setup UI
     private func setupUI() {
+        view.backgroundColor = .systemBackground
+        scrollView.backgroundColor = .systemBackground
+        contentView.backgroundColor = .systemBackground
+        
         view.addSubview(scrollView)
         scrollView.addSubview(contentView)
         
@@ -199,6 +237,7 @@ class DetailGameViewController: UIViewController {
         viewModel.onSuccess = { [weak self] in
             DispatchQueue.main.async {
                 self?.populateData()
+                self?.shareButton?.isEnabled = true
             }
         }
         
@@ -216,8 +255,9 @@ class DetailGameViewController: UIViewController {
         
         titleLabel.text = detail.name
         releasedLabel.text = "Released Date: \(detail.released)"
-        ratingLabel.text = "Rating: \(detail.rating)"
+        ratingLabel.text = "★ Rating: \(detail.rating)"
         descriptionLabel.text = detail.description
+        updateFavoriteButton(isFavorite: viewModel.isFavorite)
         
         // Load gambar menggunakan Kingfisher
         let placeholder = UIImage(systemName: "photo")
@@ -262,5 +302,50 @@ class DetailGameViewController: UIViewController {
         }
         
         UIApplication.shared.open(url, options: [:], completionHandler: nil)
+    }
+    
+    @objc private func shareTapped() {
+        guard let _ = viewModel.gameDetail else { return }
+        
+        // Kumpulkan paket item lengkap untuk dibagikan (Teks, URL, dan Gambar)
+        var itemsToShare: [Any] = []
+        
+        // 1. Teks informasi game yang informatif
+        if let text = viewModel.shareText {
+            itemsToShare.append(text)
+        }
+        
+        // 2. Tautan website resmi game atau halaman RAWG
+        if let url = viewModel.shareURL {
+            itemsToShare.append(url)
+        }
+        
+        // 3. Gambar cover game dari image view (jika sudah dimuat)
+        if let image = gameImageView.image, image != UIImage(systemName: "photo") {
+            itemsToShare.append(image)
+        }
+        
+        guard !itemsToShare.isEmpty else { return }
+        
+        // Tampilkan UIActivityViewController (Share Sheet native iOS)
+        let activityViewController = UIActivityViewController(
+            activityItems: itemsToShare,
+            applicationActivities: nil
+        )
+        
+        // BEST PRACTICE iOS: Konfigurasi popover presentation controller khusus iPad agar tidak crash
+        if let popoverController = activityViewController.popoverPresentationController {
+            popoverController.barButtonItem = shareButton
+        }
+        
+        present(activityViewController, animated: true)
+    }
+}
+
+// MARK: - UIGestureRecognizerDelegate (Mengaktifkan Geser Layar / Swipe to Back)
+extension DetailGameViewController: UIGestureRecognizerDelegate {
+    func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+        // Hanya aktifkan swipe back jika memang ada halaman sebelumnya di navigation stack (mencegah bug freeze)
+        return (navigationController?.viewControllers.count ?? 0) > 1
     }
 }

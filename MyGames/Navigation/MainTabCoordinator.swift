@@ -26,23 +26,26 @@ final class MainTabCoordinator: Coordinator {
         childCoordinators.append(homeCoordinator)
         homeCoordinator.start()
         
-        // 2. Setup Tab 2: Bookmark
+        // 2. Setup Tab 2: Bookmark (dibungkus UINavigationController agar bisa push ke Detail)
         let bookmarkVC = BookMarksViewController()
         bookmarkVC.title = "Bookmark"
         bookmarkVC.tabBarItem = UITabBarItem(title: "Bookmark", image: UIImage(systemName: "star"), tag: 1)
+        let bookmarkNavController = UINavigationController(rootViewController: bookmarkVC)
         
-        // 3. Setup Tab 3: Profile
+        // 3. Setup Tab 3: Profile (dibungkus UINavigationController agar tampilan bar konsisten)
         let profileVC = ProfileViewController()
         profileVC.title = "Profile"
         profileVC.tabBarItem = UITabBarItem(title: "Profile", image: UIImage(systemName: "person"), tag: 2)
+        let profileNavController = UINavigationController(rootViewController: profileVC)
         
-        // 4. Setup Tab 4: Test
-        let testVC = TestViewController()
-        testVC.title = "Test"
-        testVC.tabBarItem = UITabBarItem(title: "Test", image: UIImage(systemName: "bell"), tag: 3)
+        // 4. Setup Tab 4: Settings
+        let settingsVC = SettingsViewController()
+        settingsVC.title = "Settings"
+        settingsVC.tabBarItem = UITabBarItem(title: "Settings", image: UIImage(systemName: "gearshape.fill"), tag: 3)
+        let settingsNavController = UINavigationController(rootViewController: settingsVC)
         
         // Konfigurasi TabBar
-        tabBarController.viewControllers = [homeNavController, bookmarkVC, profileVC, testVC]
+        tabBarController.viewControllers = [homeNavController, bookmarkNavController, profileNavController, settingsNavController]
         tabBarController.tabBar.tintColor = .systemGreen
         tabBarController.tabBar.unselectedItemTintColor = .systemGray
     }
